@@ -46,7 +46,9 @@ export async function onRequest(context) {
 
             // 生成文件名
             const slug = title.replace(/\s+/g, "-").toLowerCase(); // 文章 URL 友好化
+            console.log(slug);
             const mdFilePath = `content/${slug}.md`;
+            console.log(mdFilePath);
             const htmlFilePath = `${BASE_PATH}/${slug}.html`;
 
             // 生成 Markdown
