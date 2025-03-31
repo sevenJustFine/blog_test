@@ -107,8 +107,15 @@ async function uploadToGitHub(repo: string, filePath: string, content: string, t
     const url = `https://api.github.com/repos/${repo}/contents/${filePath}`;
     console.log("GitHub API URL:", url); // 打印请求 URL
 
-    const encodedContent = btoa(unescape(encodeURIComponent(content))); // 正确编码中文内容
-    const commitMessage = encodeURIComponent(`Add ${filePath}`); // 正确编码提交消息
+    const encodedContent = Buffer.from(content, "utf-8").toString("base64"); // 确保 Base64 编码正确
+    const commitMessage = `Add ${filePath}`; // GitHub API 允许中文，不需要 URL 编码
+
+    const requestBody = JSON.stringify({
+        message: commitMessage, // 提交消息
+        content: encodedContent, // Base64 编码的文件内容
+    });
+
+    console.log("Request Body:", requestBody); // 打印 JSON Body，检查是否正确
 
     const response = await fetch(url, {
         method: "PUT",
@@ -117,10 +124,7 @@ async function uploadToGitHub(repo: string, filePath: string, content: string, t
             "Content-Type": "application/json",
             "User-Agent": "Cloudflare-Pages-Function",
         },
-        body: JSON.stringify({
-            message: commitMessage, // 确保提交信息不会因为中文出错
-            content: encodedContent, // Base64 编码
-        }),
+        body: requestBody,
     });
 
     const responseText = await response.text();
