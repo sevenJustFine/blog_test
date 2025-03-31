@@ -107,12 +107,15 @@ async function uploadToGitHub(repo: string, filePath: string, content: string, t
     const url = `https://api.github.com/repos/${repo}/contents/${filePath}`;
     console.log("GitHub API URL:", url); // 打印请求 URL
 
-    const encodedContent = Buffer.from(content, "utf-8").toString("base64"); // 确保 Base64 编码正确
-    const commitMessage = `Add ${filePath}`; // GitHub API 允许中文，不需要 URL 编码
+    // 1️⃣ 使用 `TextEncoder` 处理中文，然后 `btoa()` 进行 Base64 编码
+    const utf8Content = new TextEncoder().encode(content);
+    const base64Content = btoa(String.fromCharCode(...utf8Content));
+
+    const commitMessage = `Add ${filePath}`; // GitHub API 支持中文 commit message
 
     const requestBody = JSON.stringify({
         message: commitMessage, // 提交消息
-        content: encodedContent, // Base64 编码的文件内容
+        content: base64Content, // Base64 编码的文件内容
     });
 
     console.log("Request Body:", requestBody); // 打印 JSON Body，检查是否正确
