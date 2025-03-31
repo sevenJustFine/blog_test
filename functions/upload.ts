@@ -103,37 +103,62 @@ export async function onRequest(context) {
     return new Response("Method Not Allowed", {status: 405});
 }
 
-async function uploadToGitHub(repo: string, filePath: string, content: string, token: string) {
-    const url = `https://api.github.com/repos/${repo}/contents/${filePath}`;
-    console.log("GitHub API URL:", url); // 打印请求 URL
+// 生成格式化的文件名：yyyy-mm-dd-hh-ii-ss
+function getFormattedDate() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = (now.getMonth() + 1).toString().padStart(2, "0");
+    const day = now.getDate().toString().padStart(2, "0");
+    const hours = now.getHours().toString().padStart(2, "0");
+    const minutes = now.getMinutes().toString().padStart(2, "0");
+    const seconds = now.getSeconds().toString().padStart(2, "0");
 
-    // 1️⃣ 使用 `TextEncoder` 处理中文，然后 `btoa()` 进行 Base64 编码
-    const utf8Content = new TextEncoder().encode(content);
-    const base64Content = btoa(String.fromCharCode(...utf8Content));
+    return `${year}-${month}-${day}-${hours}-${minutes}-${seconds}`;
+}
 
-    const commitMessage = btoa(String.fromCharCode(...new TextEncoder().encode('`Add ${filePath}`'))) ; // GitHub API 支持中文 commit message
+async function uploadToGitHub(repo: string, content: string, token: string) {
+    try {
+        const formattedDate = getFormattedDate(); // 获取格式化的时间戳
+        const fileName = `${formattedDate}.txt`;  // 例如：2025-03-31-14-30-45.txt
+        const filePath = `uploads/${fileName}`;  // 上传到 `uploads/` 目录
 
-    const requestBody = JSON.stringify({
-        message: commitMessage, // 提交消息
-        content: base64Content, // Base64 编码的文件内容
-    });
+        console.log("📌 生成的文件名：", fileName);
 
-    console.log("Request Body:", requestBody); // 打印 JSON Body，检查是否正确
+        const url = `https://api.github.com/repos/${repo}/contents/${filePath}`;
+        console.log("📌 GitHub API URL:", url); // 打印请求 URL
 
-    const response = await fetch(url, {
-        method: "PUT",
-        headers: {
-            "Authorization": `token ${token}`,
-            "Content-Type": "application/json",
-            "User-Agent": "Cloudflare-Pages-Function",
-        },
-        body: requestBody,
-    });
+        // Base64 编码文件内容
+        const utf8Content = new TextEncoder().encode(content);
+        const base64Content = btoa(String.fromCharCode(...utf8Content));
 
-    const responseText = await response.text();
-    console.log("GitHub API Response:", responseText); // 打印 GitHub API 返回内容
+        const commitMessage = `Add ${filePath}`; // 提交消息
 
-    if (!response.ok) {
-        throw new Error(`GitHub API Error: ${responseText}`);
+        const requestBody = JSON.stringify({
+            message: commitMessage,
+            content: base64Content,
+        });
+
+        console.log("📌 Request Body:", requestBody); // 打印请求内容
+
+        const response = await fetch(url, {
+            method: "PUT",
+            headers: {
+                "Authorization": `token ${token}`,
+                "Content-Type": "application/json",
+                "User-Agent": "Cloudflare-Pages-Function",
+            },
+            body: requestBody,
+        });
+
+        const responseText = await response.text();
+        console.log("📌 GitHub API Response:", responseText); // 打印 GitHub API 返回内容
+
+        if (!response.ok) {
+            throw new Error(`GitHub API Error: ${responseText}`);
+        }
+
+        console.log("✅ 文件上传成功！", fileName);
+    } catch (error) {
+        console.error("❌ 发生错误:", error);
     }
 }
