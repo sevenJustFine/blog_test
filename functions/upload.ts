@@ -40,16 +40,14 @@ export async function onRequest(context) {
             const title = formData.get("title")?.toString().trim();
             const content = formData.get("content")?.toString().trim();
 
-            if (!title || !content) {
-                return new Response("标题和内容不能为空", {status: 400});
+            if (!title && !content) {
+                return new Response("标题和内容不能都为空", {status: 400});
             }
 
             // 生成文件名
-            const slug = title.replace(/\s+/g, "-").toLowerCase(); // 文章 URL 友好化
-            console.log(slug);
-            const mdFilePath = `content/${slug}.md`;
-            console.log(mdFilePath);
-            const htmlFilePath = `${BASE_PATH}/${slug}.html`;
+            const fileName = getFormattedDate(); // 生成格式化文件名
+            const mdFilePath = `content/${fileName}.md`;
+            const htmlFilePath = `${BASE_PATH}/${fileName}.html`;
 
             // 生成 Markdown
             const markdown = `# ${title}\n\n${content}`;
@@ -76,9 +74,9 @@ export async function onRequest(context) {
             `;
 
             // 上传 Markdown 到 GitHub
-            await uploadToGitHub(GITHUB_REPO, mdFilePath, markdown, GITHUB_TOKEN);
+            await uploadToGitHub(GITHUB_REPO, mdFilePath, markdown, GITHUB_TOKEN, fileName);
             // 上传 HTML 到 GitHub
-            await uploadToGitHub(GITHUB_REPO, htmlFilePath, htmlContent, GITHUB_TOKEN);
+            await uploadToGitHub(GITHUB_REPO, htmlFilePath, htmlContent, GITHUB_TOKEN, fileName);
 
             // 返回成功信息
             return new Response(`
@@ -116,12 +114,9 @@ function getFormattedDate() {
     return `${year}-${month}-${day}-${hours}-${minutes}-${seconds}`;
 }
 
-async function uploadToGitHub(repo: string, content: string, token: string) {
+// 上传到 GitHub 函数
+async function uploadToGitHub(repo: string, filePath: string, content: string, token: string, fileName: string) {
     try {
-        const formattedDate = getFormattedDate(); // 获取格式化的时间戳
-        const fileName = `${formattedDate}.txt`;  // 例如：2025-03-31-14-30-45.txt
-        const filePath = `uploads/${fileName}`;  // 上传到 `uploads/` 目录
-
         console.log("📌 生成的文件名：", fileName);
 
         const url = `https://api.github.com/repos/${repo}/contents/${filePath}`;
