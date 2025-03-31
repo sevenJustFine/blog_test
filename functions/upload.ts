@@ -31,7 +31,7 @@ export async function onRequest(context) {
 
     if (context.request.method === "POST") {
         const GITHUB_TOKEN = context.env.GITHUB_TOKEN;  // 你的 GitHub Token
-        const GITHUB_REPO = "https://github.com/sevenJustFine/blog_test";  // 你的 GitHub 仓库
+        const GITHUB_REPO = "sevenJustFine/blog_test";  // 你的 GitHub 仓库
         const BASE_PATH = "articles";                   // 存储 HTML 页面路径
 
         try {
@@ -103,21 +103,23 @@ export async function onRequest(context) {
 
 async function uploadToGitHub(repo: string, filePath: string, content: string, token: string) {
     const url = `https://api.github.com/repos/${repo}/contents/${filePath}`;
+    console.log("GitHub API URL:", url); // 打印请求 URL
+
     const response = await fetch(url, {
         method: "PUT",
         headers: {
             "Authorization": `token ${token}`,
             "Content-Type": "application/json",
-            "User-Agent": "Cloudflare-Pages-Function", // 关键：添加 User-Agent 头
+            "User-Agent": "Cloudflare-Pages-Function",
         },
         body: JSON.stringify({
             message: `Add ${filePath}`,
-            content: btoa(unescape(encodeURIComponent(content))), // Base64 编码
+            content: btoa(unescape(encodeURIComponent(content))),
         }),
     });
 
     const responseText = await response.text();
-    console.log("GitHub API Response:", responseText); // 打印完整响应
+    console.log("GitHub API Response:", responseText); // 打印 GitHub API 返回内容
 
     if (!response.ok) {
         throw new Error(`GitHub API Error: ${responseText}`);
