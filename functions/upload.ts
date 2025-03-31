@@ -111,7 +111,7 @@ async function uploadToGitHub(repo: string, filePath: string, content: string, t
     const utf8Content = new TextEncoder().encode(content);
     const base64Content = btoa(String.fromCharCode(...utf8Content));
 
-    const commitMessage = new TextEncoder().encode('`Add ${filePath}`'); // GitHub API 支持中文 commit message
+    const commitMessage = btoa(String.fromCharCode(...new TextEncoder().encode('`Add ${filePath}`'))) ; // GitHub API 支持中文 commit message
 
     const requestBody = JSON.stringify({
         message: commitMessage, // 提交消息
