@@ -104,16 +104,20 @@ export async function onRequest(context) {
 // 生成格式化的文件名：yyyy-mm-dd-hh-ii-ss
 function getFormattedDate() {
     const now = new Date();
-    const year = now.getFullYear();
-    const month = (now.getMonth() + 1).toString().padStart(2, "0");
-    const day = now.getDate().toString().padStart(2, "0");
-    const hours = now.getHours().toString().padStart(2, "0");
-    const minutes = now.getMinutes().toString().padStart(2, "0");
-    const seconds = now.getSeconds().toString().padStart(2, "0");
+
+    // 获取东8区的时间（UTC +8）
+    const offset = 8 * 60; // 东8区时区偏移量，单位为分钟
+    const localTime = new Date(now.getTime() + offset * 60 * 1000);  // 调整时间为东8区时间
+
+    const year = localTime.getFullYear();
+    const month = (localTime.getMonth() + 1).toString().padStart(2, "0");
+    const day = localTime.getDate().toString().padStart(2, "0");
+    const hours = localTime.getHours().toString().padStart(2, "0");
+    const minutes = localTime.getMinutes().toString().padStart(2, "0");
+    const seconds = localTime.getSeconds().toString().padStart(2, "0");
 
     return `${year}-${month}-${day}-${hours}-${minutes}-${seconds}`;
 }
-
 // 上传到 GitHub 函数
 async function uploadToGitHub(repo: string, filePath: string, content: string, token: string, fileName: string) {
     try {
