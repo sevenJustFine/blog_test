@@ -26,7 +26,7 @@ export async function onRequest(context) {
                 </form>
             </body>
             </html>
-        `, { headers: { "Content-Type": "text/html" } });
+        `, {headers: {"Content-Type": "text/html"}});
     }
 
     if (context.request.method === "POST") {
@@ -41,7 +41,7 @@ export async function onRequest(context) {
             const content = formData.get("content")?.toString().trim();
 
             if (!title || !content) {
-                return new Response("标题和内容不能为空", { status: 400 });
+                return new Response("标题和内容不能为空", {status: 400});
             }
 
             // 生成文件名
@@ -94,13 +94,13 @@ export async function onRequest(context) {
                     <p><a href="/${htmlFilePath}">点击这里查看文章</a></p>
                 </body>
                 </html>
-            `, { headers: { "Content-Type": "text/html" } });
+            `, {headers: {"Content-Type": "text/html"}});
         } catch (error) {
-            return new Response(`发布失败: ${error.message}`, { status: 500 });
+            return new Response(`发布失败: ${error.message}`, {status: 500});
         }
     }
 
-    return new Response("Method Not Allowed", { status: 405 });
+    return new Response("Method Not Allowed", {status: 405});
 }
 
 async function uploadToGitHub(repo: string, filePath: string, content: string, token: string) {
@@ -111,7 +111,7 @@ async function uploadToGitHub(repo: string, filePath: string, content: string, t
     const utf8Content = new TextEncoder().encode(content);
     const base64Content = btoa(String.fromCharCode(...utf8Content));
 
-    const commitMessage = `Add ${filePath}`; // GitHub API 支持中文 commit message
+    const commitMessage = new TextEncoder().encode('`Add ${filePath}`'); // GitHub API 支持中文 commit message
 
     const requestBody = JSON.stringify({
         message: commitMessage, // 提交消息
