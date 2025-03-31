@@ -17,7 +17,7 @@ export async function onRequest(context) {
             </head>
             <body>
                 <h2>发布文章</h2>
-                <form action="/uploads" method="POST">
+                <form action="/upload" method="POST">
                     <label>标题:</label>
                     <input type="text" name="title" required>
                     <label>内容 (Markdown):</label>
