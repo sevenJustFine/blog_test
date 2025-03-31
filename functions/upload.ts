@@ -108,6 +108,7 @@ async function uploadToGitHub(repo: string, filePath: string, content: string, t
         headers: {
             "Authorization": `token ${token}`,
             "Content-Type": "application/json",
+            "User-Agent": "Cloudflare-Pages-Function", // 关键：添加 User-Agent 头
         },
         body: JSON.stringify({
             message: `Add ${filePath}`,
@@ -115,7 +116,6 @@ async function uploadToGitHub(repo: string, filePath: string, content: string, t
         }),
     });
 
-    // 解析 API 响应
     const responseText = await response.text();
     console.log("GitHub API Response:", responseText); // 打印完整响应
 
