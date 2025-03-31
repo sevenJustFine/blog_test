@@ -101,7 +101,6 @@ export async function onRequest(context) {
     return new Response("Method Not Allowed", { status: 405 });
 }
 
-// 上传文件到 GitHub
 async function uploadToGitHub(repo: string, filePath: string, content: string, token: string) {
     const url = `https://api.github.com/repos/${repo}/contents/${filePath}`;
     const response = await fetch(url, {
@@ -116,8 +115,11 @@ async function uploadToGitHub(repo: string, filePath: string, content: string, t
         }),
     });
 
+    // 解析 API 响应
+    const responseText = await response.text();
+    console.log("GitHub API Response:", responseText); // 打印完整响应
+
     if (!response.ok) {
-        const error = await response.json();
-        throw new Error(`GitHub API Error: ${JSON.stringify(error)}`);
+        throw new Error(`GitHub API Error: ${responseText}`);
     }
 }
