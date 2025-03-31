@@ -31,7 +31,7 @@ export async function onRequest(context) {
 
     if (context.request.method === "POST") {
         const GITHUB_TOKEN = context.env.GITHUB_TOKEN;  // 你的 GitHub Token
-        const GITHUB_REPO = "your_username/your_repo";  // 你的 GitHub 仓库
+        const GITHUB_REPO = "https://github.com/sevenJustFine/blog_test";  // 你的 GitHub 仓库
         const BASE_PATH = "articles";                   // 存储 HTML 页面路径
 
         try {
