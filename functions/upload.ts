@@ -1,4 +1,17 @@
 export async function onRequest(context) {
+    const AUTH_USER = "seven";  // 你的账号
+    const AUTH_PASS = "7777";  // 你的密码
+
+    // 解析请求头中的 Authorization 字段
+    const authHeader = context.request.headers.get("Authorization");
+
+    if (!authHeader || !isValidAuth(authHeader, AUTH_USER, AUTH_PASS)) {
+        return new Response("未授权", {
+            status: 401,
+            headers: {"WWW-Authenticate": 'Basic realm="Secure Area"'},
+        });
+    }
+
     if (context.request.method === "GET") {
         // 显示上传页面
         return new Response(`
