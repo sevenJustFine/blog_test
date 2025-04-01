@@ -38,14 +38,13 @@ export async function onRequest(context) {
             const title = formData.get("title")?.toString().trim();
             const content = formData.get("content")?.toString().trim();
 
-            if (!title || !content) {
-                return new Response("标题和内容不能为空", {status: 400});
+            if (!title && !content) {
+                return new Response("标题和内容不能都为空", {status: 400});
             }
 
             // 生成文件名和年份目录
-            const {year, dateString} = getFormattedDate();
-            const baseDir = `${year}`; // 按年份创建目录
-            const htmlFilePath = `${baseDir}/${dateString}.html`;
+            const {year, month, day, timeString} = getFormattedDate();
+            const htmlFilePath = `${year}/${month}/${day}/${timeString}.html`;// 按年份/月份/日期 创建目录
 
             const htmlContent = `
 <!DOCTYPE html>
@@ -115,8 +114,8 @@ function getFormattedDate() {
     const minutes = localTime.getMinutes().toString().padStart(2, "0");
     const seconds = localTime.getSeconds().toString().padStart(2, "0");
 
-    const dateString = `${month}-${day}_${hours}-${minutes}-${seconds}`; // 生成文件名
-    return {year, dateString};
+    const timeString = `${hours}${minutes}${seconds}`; // 生成文件名
+    return {year, month, day, timeString};
 }
 
 // 上传到 GitHub 函数
