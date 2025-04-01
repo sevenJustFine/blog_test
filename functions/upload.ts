@@ -174,3 +174,11 @@ async function uploadToGitHub(repo: string, filePath: string, content: string, t
         console.error("❌ 发生错误:", error);
     }
 }
+// 解析 Basic Auth 认证
+function isValidAuth(authHeader: string, username: string, password: string): boolean {
+    const base64Credentials = authHeader.split(" ")[1]; // 获取 base64 编码的用户名密码
+    const decodedCredentials = atob(base64Credentials); // 解码
+    const [user, pass] = decodedCredentials.split(":"); // 分割用户名和密码
+
+    return user === username && pass === password;
+}
