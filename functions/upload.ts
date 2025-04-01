@@ -77,7 +77,7 @@ export async function onRequest(context) {
 </html>`;
 
             // 上传HTML
-            await uploadToGitHub(GITHUB_REPO, htmlFilePath, htmlContent, GITHUB_TOKEN, dateString);
+            await uploadToGitHub(GITHUB_REPO, htmlFilePath, htmlContent, GITHUB_TOKEN);
 
             return new Response(`
             <!DOCTYPE html>
@@ -119,9 +119,9 @@ function getFormattedDate() {
 }
 
 // 上传到 GitHub 函数
-async function uploadToGitHub(repo: string, filePath: string, content: string, token: string, fileName: string) {
+async function uploadToGitHub(repo: string, filePath: string, content: string, token: string) {
     try {
-        console.log("📌 生成的文件名：", fileName);
+        console.log("📌 生成的文件名：", filePath);
 
         const url = `https://api.github.com/repos/${repo}/contents/${filePath}`;
         console.log("📌 GitHub API URL:", url); // 打印请求 URL
@@ -156,7 +156,7 @@ async function uploadToGitHub(repo: string, filePath: string, content: string, t
             throw new Error(`GitHub API Error: ${responseText}`);
         }
 
-        console.log("✅ 文件上传成功！", fileName);
+        console.log("✅ 文件上传成功！", filePath);
     } catch (error) {
         console.error("❌ 发生错误:", error);
     }
