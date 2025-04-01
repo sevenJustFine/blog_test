@@ -30,69 +30,61 @@ export async function onRequest(context) {
     }
 
     if (context.request.method === "POST") {
-        const GITHUB_TOKEN = context.env.GITHUB_TOKEN;  // 你的 GitHub Token
-        const GITHUB_REPO = "sevenJustFine/blog_test";  // 你的 GitHub 仓库
-        const BASE_PATH = "articles";                   // 存储 HTML 页面路径
+        const GITHUB_TOKEN = context.env.GITHUB_TOKEN;
+        const GITHUB_REPO = "sevenJustFine/blog_test";
 
         try {
-            // 解析提交数据
             const formData = await context.request.formData();
             const title = formData.get("title")?.toString().trim();
             const content = formData.get("content")?.toString().trim();
 
-            if (!title && !content) {
-                return new Response("标题和内容不能都为空", {status: 400});
+            if (!title || !content) {
+                return new Response("标题和内容不能为空", {status: 400});
             }
 
-            // 生成文件名
-            const fileName = getFormattedDate(); // 生成格式化文件名
-            const mdFilePath = `content/${fileName}.md`;
-            const htmlFilePath = `${BASE_PATH}/${fileName}.html`;
+            // 生成文件名和年份目录
+            const {year, dateString} = getFormattedDate();
+            const baseDir = `${year}`; // 按年份创建目录
+            const htmlFilePath = `${baseDir}/${dateString}.html`;
 
-            // 生成 Markdown
-            const markdown = `# ${title}\n\n${content}`;
-
-            // 生成 HTML（使用简单的模板）
             const htmlContent = `
-                <!DOCTYPE html>
-                <html lang="zh">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>${title}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-                        h1 { color: #333; }
-                        p { line-height: 1.6; }
-                    </style>
-                </head>
-                <body>
-                    <h1>${title}</h1>
-                    <p>${content.replace(/\n/g, "<br>")}</p>
-                </body>
-                </html>
-            `;
+            <!DOCTYPE html>
+            <html lang="zh">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>${title}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+                    h1 { color: #333; }
+                    p { line-height: 1.6; }
+                </style>
+            </head>
+            <body>
+                <h1>${title}</h1>
+                <p>${content.replace(/\n/g, "<br>")}</p>
+            </body>
+            </html>
+        `;
 
-            // 上传 Markdown 到 GitHub
-            await uploadToGitHub(GITHUB_REPO, mdFilePath, markdown, GITHUB_TOKEN, fileName);
-            // 上传 HTML 到 GitHub
-            await uploadToGitHub(GITHUB_REPO, htmlFilePath, htmlContent, GITHUB_TOKEN, fileName);
+            // 上传HTML
+            await uploadToGitHub(GITHUB_REPO, htmlFilePath, htmlContent, GITHUB_TOKEN, dateString);
 
-            // 返回成功信息
             return new Response(`
-                <!DOCTYPE html>
-                <html lang="zh">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>发布成功</title>
-                </head>
-                <body>
-                    <h2>文章发布成功！</h2>
-                    <p><a href="/${htmlFilePath}">点击这里查看文章</a></p>
-                </body>
-                </html>
-            `, {headers: {"Content-Type": "text/html"}});
+            <!DOCTYPE html>
+            <html lang="zh">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>发布成功</title>
+            </head>
+            <body>
+                <h2>文章发布成功！</h2>
+                <p><a href="/${htmlFilePath}">点击这里查看文章</a></p>
+            </body>
+            </html>
+        `, {headers: {"Content-Type": "text/html"}});
+
         } catch (error) {
             return new Response(`发布失败: ${error.message}`, {status: 500});
         }
@@ -101,13 +93,10 @@ export async function onRequest(context) {
     return new Response("Method Not Allowed", {status: 405});
 }
 
-// 生成格式化的文件名：yyyy-mm-dd-hh-ii-ss
 function getFormattedDate() {
     const now = new Date();
-
-    // 获取东8区的时间（UTC +8）
-    const offset = 8 * 60; // 东8区时区偏移量，单位为分钟
-    const localTime = new Date(now.getTime() + offset * 60 * 1000);  // 调整时间为东8区时间
+    const offset = 8 * 60; // 东8区偏移量（分钟）
+    const localTime = new Date(now.getTime() + offset * 60 * 1000); // 调整为东8区时间
 
     const year = localTime.getFullYear();
     const month = (localTime.getMonth() + 1).toString().padStart(2, "0");
@@ -116,8 +105,10 @@ function getFormattedDate() {
     const minutes = localTime.getMinutes().toString().padStart(2, "0");
     const seconds = localTime.getSeconds().toString().padStart(2, "0");
 
-    return `${year}-${month}-${day}-${hours}-${minutes}-${seconds}`;
+    const dateString = `${month}-${day}-${hours}-${minutes}-${seconds}`; // 生成文件名
+    return {year, dateString};
 }
+
 // 上传到 GitHub 函数
 async function uploadToGitHub(repo: string, filePath: string, content: string, token: string, fileName: string) {
     try {
