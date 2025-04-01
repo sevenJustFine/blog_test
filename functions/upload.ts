@@ -48,24 +48,34 @@ export async function onRequest(context) {
             const htmlFilePath = `${baseDir}/${dateString}.html`;
 
             const htmlContent = `
-            <!DOCTYPE html>
-            <html lang="zh">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>${title}</title>
-                <style>
-                    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-                    h1 { color: #333; }
-                    p { line-height: 1.6; }
-                </style>
-            </head>
-            <body>
-                <h1>${title}</h1>
-                <p>${content.replace(/\n/g, "<br>")}</p>
-            </body>
-            </html>
-        `;
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试一下</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        p {
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <h1>${title}</h1>
+    <p>${content.replace(/\n/g, "<br>")}</p>
+</body>
+</html>`;
 
             // 上传HTML
             await uploadToGitHub(GITHUB_REPO, htmlFilePath, htmlContent, GITHUB_TOKEN, dateString);
@@ -105,7 +115,7 @@ function getFormattedDate() {
     const minutes = localTime.getMinutes().toString().padStart(2, "0");
     const seconds = localTime.getSeconds().toString().padStart(2, "0");
 
-    const dateString = `${month}-${day}-${hours}-${minutes}-${seconds}`; // 生成文件名
+    const dateString = `${month}-${day}_${hours}-${minutes}-${seconds}`; // 生成文件名
     return {year, dateString};
 }
 
